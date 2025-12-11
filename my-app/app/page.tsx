@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 
 export default function Home() {
-  // 預設下班時間為 18:00
-  const [offTime, setOffTime] = useState('18:00');
+  // 預設下班時間為 17:30
+  const [offTime, setOffTime] = useState('17:30');
   const [timeLeft, setTimeLeft] = useState<string>('計算中...');
   const [isOffTime, setIsOffTime] = useState(false);
 
