@@ -7,6 +7,7 @@ export default function Home() {
   const [offTime, setOffTime] = useState('17:30');
   const [timeLeft, setTimeLeft] = useState<string>('計算中...');
   const [isOffTime, setIsOffTime] = useState(false);
+  const [currentTime, setCurrentTime] = useState<string>('');
 
   // 計算剩餘時間
   useEffect(() => {
@@ -47,6 +48,21 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, [offTime]);
+
+  // 更新當前時間，避免 hydration mismatch
+  useEffect(() => {
+    const updateCurrentTime = () => {
+      setCurrentTime(new Date().toLocaleTimeString('zh-TW'));
+    };
+
+    // 立即更新一次
+    updateCurrentTime();
+
+    // 每秒更新一次
+    const interval = setInterval(updateCurrentTime, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -92,7 +108,7 @@ export default function Home() {
           {/* 當前時間顯示 */}
           <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              現在時間：{new Date().toLocaleTimeString('zh-TW')}
+              現在時間：{currentTime || '載入中...'}
             </p>
           </div>
         </div>
