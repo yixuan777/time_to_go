@@ -1,63 +1,116 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
 
 export default function Home() {
+  // 預設下班時間為 17:30
+  const [offTime, setOffTime] = useState('17:30');
+  const [timeLeft, setTimeLeft] = useState<string>('計算中...');
+  const [isOffTime, setIsOffTime] = useState(false);
+  const [currentTime, setCurrentTime] = useState<string>('');
+
+  // 計算剩餘時間
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const [hours, minutes] = offTime.split(':').map(Number);
+      const offDateTime = new Date();
+      offDateTime.setHours(hours, minutes, 0, 0);
+
+      // 如果下班時間已過，設定為明天
+      if (offDateTime <= now) {
+        offDateTime.setDate(offDateTime.getDate() + 1);
+      }
+
+      const diff = offDateTime.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        setIsOffTime(true);
+        setTimeLeft('下班時間到！');
+        return;
+      }
+
+      setIsOffTime(false);
+      const hoursLeft = Math.floor(diff / (1000 * 60 * 60));
+      const minutesLeft = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secondsLeft = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeLeft(
+        `${hoursLeft.toString().padStart(2, '0')}:${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`
+      );
+    };
+
+    // 立即計算一次
+    calculateTimeLeft();
+
+    // 每秒更新一次
+    const interval = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(interval);
+  }, [offTime]);
+
+  // 更新當前時間，避免 hydration mismatch
+  useEffect(() => {
+    const updateCurrentTime = () => {
+      setCurrentTime(new Date().toLocaleTimeString('zh-TW'));
+    };
+
+    // 立即更新一次
+    updateCurrentTime();
+
+    // 每秒更新一次
+    const interval = setInterval(updateCurrentTime, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <main className="w-full max-w-md mx-auto px-6 py-12">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-8">
+          {/* 標題 */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+              下班倒數計時器
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              距離下班還有多久？
+            </p>
+          </div>
+
+          {/* 時間設定 */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              設定下班時間
+            </label>
+            <input
+              type="time"
+              value={offTime}
+              onChange={(e) => setOffTime(e.target.value)}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          {/* 倒數顯示 */}
+          <div className="text-center py-8">
+            <div className={`text-6xl font-mono font-bold mb-4 ${
+              isOffTime 
+                ? 'text-green-500 animate-pulse' 
+                : 'text-indigo-600 dark:text-indigo-400'
+            }`}>
+              {timeLeft}
+            </div>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              {isOffTime ? '🎉 可以下班了！' : '⏰ 繼續加油'}
+            </p>
+          </div>
+
+          {/* 當前時間顯示 */}
+          <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              現在時間：{currentTime || '載入中...'}
+            </p>
+          </div>
         </div>
       </main>
     </div>
